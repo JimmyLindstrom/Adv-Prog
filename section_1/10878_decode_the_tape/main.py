@@ -4,7 +4,6 @@ sys.stdin = open("input_data", "r")
 def start():
     new_line = input()
     new_line = input()
-    message = ""
     while new_line:
         character = ""
         if new_line[0] == "|":
@@ -16,7 +15,6 @@ def start():
                 else:
                     character += "0"
             int_character = int(character, 2)
-            message += chr(int_character)
             print(chr(int_character), end="")
         try:
             new_line = input()
