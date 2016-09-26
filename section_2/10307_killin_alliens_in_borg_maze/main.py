@@ -2,6 +2,60 @@ import sys
 sys.stdin = open("input_data", "r")
 
 
+class Node:
+    'Common base class for all Nodes'
+    empCount = 0
+
+    def __init__(self, x, y, weight, alien):
+        self.x = x
+        self.y = y
+        self.visited = False
+        self.alien = alien
+        self.weight = weight
+        Node.empCount += 1
+
+    def displayCount(self):
+        print
+        "Total Employee %d" % Node.empCount
+
+    def displayNode(self):
+        print("X : ", self.x, ", Y: ", self.y,
+               ", weight: ", self.weight, ", visited:  ",
+              self.visited, ", alien: ", self.alien)
+
+
+
+def start():
+    # getting test cases
+    test_cases = int(input())
+    # looping test_cases times
+    x, y = [int(i) for i in input().split()]
+    start_Node = None
+    map = []
+    for i in range(0, y):
+        map.append([])
+        new_input = input().split()
+        for j in range(0, x):
+            if new_input[j] == "S":
+                node = Node(i, j, 0, False)
+                start_Node = node
+            elif new_input[j] == "A":
+                node = Node(i, j, 0, True)
+            elif new_input[j] == "#":
+                node = Node(i, j, 0, False)
+            else:
+                node = Node(i, j, 0, False)
+            map[i].append(node)
+            node.displayNode()
+
+    while test_cases > 0:
+        test_cases -= 1
+
+
+start()
+
+
+
 # merge two nodes, w and y, to a set in the citizens array
 def union(x, y, citizens):
     # fins the nodes roots
@@ -40,14 +94,3 @@ def find(x, citizens):
     else:
         return citizens[x]
 
-
-def start():
-    # getting test cases
-    test_cases = int(input())
-    # looping test_cases times
-    while test_cases > 0:
-
-        test_cases -= 1
-
-
-start()
