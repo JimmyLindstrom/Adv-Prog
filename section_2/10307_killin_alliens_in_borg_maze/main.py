@@ -1,96 +1,166 @@
+from queue import Queue
 import sys
 sys.stdin = open("input_data", "r")
 
 
-class Node:
-    'Common base class for all Nodes'
-    empCount = 0
-
-    def __init__(self, x, y, weight, alien):
-        self.x = x
-        self.y = y
-        self.visited = False
-        self.alien = alien
-        self.weight = weight
-        Node.empCount += 1
-
-    def displayCount(self):
-        print
-        "Total Employee %d" % Node.empCount
-
-    def displayNode(self):
-        print("X : ", self.x, ", Y: ", self.y,
-               ", weight: ", self.weight, ", visited:  ",
-              self.visited, ", alien: ", self.alien)
+# array for the different directions we can travel in the map
+directions = [[-1,  0],
+              [ 0, -1],
+              [ 1,  0],
+              [ 0,  1]]
 
 
+# ------- Union find Algorith ----------
+def make_set(x, parents):
+    parents[x].append(x)
+    parents[x].append(0)
+
+def union(x, y, parents):
+    x_root = find(x, parents)
+    y_root = find(y, parents)
+
+    if x_root == y_root:
+        return
+
+    if parents[x_root]["rank"] < parents[y_root]["rank"]:
+        parents[x_root]["parent"] = y_root
+    elif parents[x_root]["rank"] > parents[y_root]["rank"]:
+        parents[y_root]["parent"] = x_root
+    else:
+        parents[y_root]["parent"] = x_root
+        parents[x_root]["rank"] = parents[x_root]["rank"] + 1
+
+
+def find(x, parents):
+    if parents[x]["parent"] != x:
+        parents[x]["parent"] = find(parents[x]["parent"], parents)
+    return parents[x]["parent"]
+# --------- Union find end --------------
+
+
+# -------- Kruskals algorith ------------
+# Kruskals algoritm for finding minimum spanning tree
+def kruskal(G, nodes, parents):
+    e = []
+    for node in G:
+        parents[node] = {"parent": node, "rank": 0} # the make_set operation !
+        for edge in G[node]:
+            e.append(edge)
+    # for node in nodes:
+    #     make_set(node, parents)
+    X = []
+    for edge in sorted(e, key=lambda e: e[2]):
+        if find(edge[0], parents) != find(edge[1], parents):
+            X.append(edge)
+            union(edge[0], edge[1], parents)
+    return X
+# -------- Kruskals end--------------
+
+
+# ----------- BFS --------------------
+# nethod for traversing the graph and finding edges and their length
+def breadth_first_search(map, starting_node, edges, bfs):
+    node_queue = Queue(maxsize=0)
+    node_queue.put(starting_node)
+    edges[starting_node] = []
+    # setting startnodes dist to 0 in bfs array
+    bfs[starting_node[0]][starting_node[1]] = 0
+
+    while node_queue.qsize() > 0:
+        u = node_queue.get()
+        x = u[0]
+        y = u[1]
+        for dir in directions:
+            new_x = x + dir[0]
+            new_y = y + dir[1]
+            node_type = map[new_x][new_y]
+            node = (new_x, new_y)
+
+            if node_type == "#" or bfs[new_x][new_y] < 100 or node_type == "S":
+                continue
+            elif node_type == "A": # or node_type == "S":
+                # if node_type == "S":
+                #     continue
+                    # bfs[new_x][new_y] = (bfs[x][y]) + 1
+                    # node_queue.put((new_x, new_y))
+                # if bfs[new_x][new_y] > (bfs[x][y]) + 1:
+                bfs[new_x][new_y] = (bfs[x][y]) + 1
+                # node_queue.put((new_x, new_y))
+                edge = (starting_node, node, bfs[x][y] + 1)
+                if not counter_edge_exists(edge, edges): # check for same edge the other way
+                    edges[starting_node].append(edge)
+            elif node_type == " ":
+                bfs[new_x][new_y] = (bfs[x][y]) + 1
+                node_queue.put(node)
+# ------------BFS end -----------------
+
+
+# function reseting distance values in bfs array
+def reset_bfs_array(bfs):
+    for i in range(0, len(bfs)):
+        bfs[i] = [100] * len(bfs[i])
+
+
+# method for checking if an edge already exists the other
+# way som not to create it again
+def counter_edge_exists(new_edge, edges):
+    try:
+        for edge in edges[new_edge[1]]:
+            if edge == (new_edge[1], new_edge[0], new_edge[2]):
+                return True
+    except KeyError:
+        return False
 
 def start():
     # getting test cases
     test_cases = int(input())
-    # looping test_cases times
-    x, y = [int(i) for i in input().split()]
-    start_Node = None
-    map = []
-    for i in range(0, y):
-        map.append([])
-        new_input = input().split()
-        for j in range(0, x):
-            if new_input[j] == "S":
-                node = Node(i, j, 0, False)
-                start_Node = node
-            elif new_input[j] == "A":
-                node = Node(i, j, 0, True)
-            elif new_input[j] == "#":
-                node = Node(i, j, 0, False)
-            else:
-                node = Node(i, j, 0, False)
-            map[i].append(node)
-            node.displayNode()
-
     while test_cases > 0:
+        x, y = [int(i) for i in input().split()]
+        map = []
+        # Bfs array holds the distances temporary
+        bfs = []
+        # dictionary for the edges, key is the node edges come from
+        edges = {}
+        nodes = []
+
+        # building the map line by line and saving
+        # aliens and startpoint as nodes
+        for i in range(0, y):
+            new_input = input()
+            map.append([])
+            bfs.append([])
+            for j in range(0, len(new_input)):
+                if new_input[j] == "S" or new_input[j] == "A":
+                    node = (i, j)
+                    nodes.append(node)
+                map[i].append(new_input[j])
+                bfs[i].append(100) # setting all distances to 100
+
+
+        # for all nodes get the edges with distance
+        for starting_node in nodes:
+            breadth_first_search(map, starting_node, edges, bfs)
+            reset_bfs_array(bfs)
+        #
+        # print("----- EDGES ------")
+        # edge_count = 0
+        # for node in edges:
+        #     print(node)
+        #     for edge in edges[node]:
+        #         edge_count += 1
+        #         print(edge)
+        # print("AMOUNT OF EDGES!! ", edge_count)
+
+        # Calculate MST and from MST the minimum distance
+        # parents is dictionary to hold parents and rank value for union find algorithm
+        parents = {}
+        MST = kruskal(edges, nodes, parents)
+        distance = 0
+        for edge in MST:
+            distance += edge[2]
+        print(distance)
+
         test_cases -= 1
 
 
 start()
-
-
-
-# merge two nodes, w and y, to a set in the citizens array
-def union(x, y, citizens):
-    # fins the nodes roots
-    x_root = find(x, citizens)
-    y_root = find(y, citizens)
-    # If they have same root they are already in same set
-    if x_root == y_root:
-        return
-    # if they are not in the same set merge the smaller set with
-    # the bigger, by increasing the bigger set with the smaller sets
-    # size, and set parent node in smaller set = parent node of bigger
-    # set
-    if citizens[x_root] > citizens[y_root]:
-        citizens[y_root] += citizens[x_root]
-        citizens[x_root] = y_root
-    elif citizens[x_root] < citizens[y_root]:
-        citizens[x_root] += citizens[y_root]
-        citizens[y_root] = x_root
-    # if the sets are equaly big join y_root with x_root
-    else:
-        citizens[x_root] += citizens[y_root]
-        citizens[y_root] = x_root
-
-
-# find the root_node of a set, and sets the root_node as parent for all
-# the nodes in the set
-def find(x, citizens):
-    # if it is not already a root node
-    if citizens[x] >= 0:
-        # goto the nodes parent-node
-        citizens[x] = find(citizens[x], citizens)
-    # if it is a root node return the index
-    if citizens[x] < 0:
-        return x
-    # if it is not a root node return the roots parent index
-    else:
-        return citizens[x]
-
