@@ -10,11 +10,12 @@ directions = [[-1,  0],
               [ 0,  1]]
 
 
-# ------- Union find Algorith ----------
 def make_set(x, parents):
     parents[x].append(x)
     parents[x].append(0)
 
+
+# ------- Union find Algorith ----------
 def union(x, y, parents):
     x_root = find(x, parents)
     y_root = find(y, parents)
@@ -144,11 +145,11 @@ def start():
         #
         # print("----- EDGES ------")
         # edge_count = 0
-        # for node in edges:
-        #     print(node)
-        #     for edge in edges[node]:
-        #         edge_count += 1
-        #         print(edge)
+        for node in edges:
+            print(node)
+            for edge in edges[node]:
+                # edge_count += 1
+                print(edge)
         # print("AMOUNT OF EDGES!! ", edge_count)
 
         # Calculate MST and from MST the minimum distance
