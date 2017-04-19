@@ -9,7 +9,7 @@ def start():
         K = next_input[1]
 
         # creating 2d array for calculating with K +1 rows
-        # and N+1 columns, to calculate using synamic programming
+        # and N+1 columns, to calculate using dynamic programming
         numbers = []
         for i in range(0, 2):
             # if K is 1 there is always only 1 way to add up to N
